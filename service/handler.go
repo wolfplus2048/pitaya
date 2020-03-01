@@ -24,6 +24,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/topfreegames/pitaya"
 	"strings"
 	"time"
 
@@ -61,8 +62,9 @@ type (
 		appDieChan         chan bool             // die channel app
 		chLocalProcess     chan unhandledMessage // channel of messages that will be processed locally
 		chRemoteProcess    chan unhandledMessage // channel of messages that will be processed remotely
-		decoder            codec.PacketDecoder   // binary decoder
-		encoder            codec.PacketEncoder   // binary encoder
+		chCallbackProcess  chan pitaya.CallbackTask
+		decoder            codec.PacketDecoder // binary decoder
+		encoder            codec.PacketEncoder // binary encoder
 		heartbeatTimeout   time.Duration
 		messagesBufferSize int
 		remoteService      *RemoteService
@@ -100,6 +102,7 @@ func NewHandlerService(
 		services:           make(map[string]*component.Service),
 		chLocalProcess:     make(chan unhandledMessage, localProcessBufferSize),
 		chRemoteProcess:    make(chan unhandledMessage, remoteProcessBufferSize),
+		chCallbackProcess:  make(chan pitaya.CallbackTask, localProcessBufferSize),
 		decoder:            packetDecoder,
 		encoder:            packetEncoder,
 		messagesBufferSize: messagesBufferSize,
@@ -127,9 +130,11 @@ func (h *HandlerService) Dispatch(thread int) {
 			metrics.ReportMessageProcessDelayFromCtx(lm.ctx, h.metricsReporters, "local")
 			h.localProcess(lm.ctx, lm.agent, lm.route, lm.msg)
 
-		case rm := <-h.chRemoteProcess:
-			metrics.ReportMessageProcessDelayFromCtx(rm.ctx, h.metricsReporters, "remote")
-			h.remoteService.remoteProcess(rm.ctx, nil, rm.agent, rm.route, rm.msg)
+		//case rm := <-h.chRemoteProcess:
+		//	metrics.ReportMessageProcessDelayFromCtx(rm.ctx, h.metricsReporters, "remote")
+		//	h.remoteService.remoteProcess(rm.ctx, nil, rm.agent, rm.route, rm.msg)
+		case tk := <-h.chCallbackProcess:
+			tk.Callback(tk.Res, tk.Err)
 
 		case <-timer.GlobalTicker.C: // execute cron task
 			timer.Cron()
@@ -141,6 +146,10 @@ func (h *HandlerService) Dispatch(thread int) {
 			timer.RemoveTimer(id)
 		}
 	}
+}
+
+func (h *HandlerService) AppendTask(task pitaya.CallbackTask) {
+	h.chCallbackProcess <- task
 }
 
 // Register registers components
@@ -295,7 +304,9 @@ func (h *HandlerService) processMessage(a *agent.Agent, msg *message.Message) {
 		h.chLocalProcess <- message
 	} else {
 		if h.remoteService != nil {
-			h.chRemoteProcess <- message
+			//			h.chRemoteProcess <- message
+			metrics.ReportMessageProcessDelayFromCtx(message.ctx, h.metricsReporters, "remote")
+			go h.remoteService.remoteProcess(message.ctx, nil, message.agent, message.route, message.msg)
 		} else {
 			logger.Log.Warnf("request made to another server type but no remoteService running")
 		}
