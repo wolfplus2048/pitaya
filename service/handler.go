@@ -24,7 +24,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/topfreegames/pitaya"
 	"strings"
 	"time"
 
@@ -55,6 +54,14 @@ var (
 	handlers    = make(map[string]*component.Handler) // all handler method
 	handlerType = "handler"
 )
+type AsyncCallback func(res interface{}, err error)
+type AsyncRoutine func() (res interface{}, err error)
+
+type CallbackTask struct {
+	Callback AsyncCallback
+	Res      interface{}
+	Err      error
+}
 
 type (
 	// HandlerService service
@@ -62,7 +69,7 @@ type (
 		appDieChan         chan bool             // die channel app
 		chLocalProcess     chan unhandledMessage // channel of messages that will be processed locally
 		chRemoteProcess    chan unhandledMessage // channel of messages that will be processed remotely
-		chCallbackProcess  chan pitaya.CallbackTask
+		chCallbackProcess  chan CallbackTask
 		decoder            codec.PacketDecoder // binary decoder
 		encoder            codec.PacketEncoder // binary encoder
 		heartbeatTimeout   time.Duration
@@ -102,7 +109,7 @@ func NewHandlerService(
 		services:           make(map[string]*component.Service),
 		chLocalProcess:     make(chan unhandledMessage, localProcessBufferSize),
 		chRemoteProcess:    make(chan unhandledMessage, remoteProcessBufferSize),
-		chCallbackProcess:  make(chan pitaya.CallbackTask, localProcessBufferSize),
+		chCallbackProcess:  make(chan CallbackTask, localProcessBufferSize),
 		decoder:            packetDecoder,
 		encoder:            packetEncoder,
 		messagesBufferSize: messagesBufferSize,
@@ -148,7 +155,7 @@ func (h *HandlerService) Dispatch(thread int) {
 	}
 }
 
-func (h *HandlerService) AppendTask(task pitaya.CallbackTask) {
+func (h *HandlerService) AppendTask(task CallbackTask) {
 	h.chCallbackProcess <- task
 }
 

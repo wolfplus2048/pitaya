@@ -123,6 +123,10 @@ func (c *Config) fillDefaultValues() {
 		"pitaya.worker.retry.maxDelay":                     10,
 		"pitaya.worker.retry.maxRandom":                    10,
 		"pitaya.worker.retry.minDelay":                     0,
+		"pitaya.db.mysql.connect":							"wolfplus:passthis@/gopoker",
+		"pitaya.db.mysql.maxidleconns":						20,
+		"pitaya.db.mysql.maxopenconns":						20,
+		"pitaya.db.mysql.showsql":							true,
 	}
 
 	for param := range defaultsMap {
