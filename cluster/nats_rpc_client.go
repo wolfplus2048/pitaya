@@ -216,6 +216,7 @@ func (ns *NatsRPCClient) Init() error {
 		return err
 	}
 	ns.conn = conn
+
 	return nil
 }
 
