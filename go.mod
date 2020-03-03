@@ -1,4 +1,4 @@
-module github.com/wolfplus2048/pitaya
+module github.com/topfreegames/pitaya
 
 go 1.12
 
