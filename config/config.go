@@ -94,7 +94,7 @@ func (c *Config) fillDefaultValues() {
 		"pitaya.groups.etcd.prefix":                        "pitaya/",
 		"pitaya.groups.etcd.transactiontimeout":            "5s",
 		"pitaya.groups.memory.tickduration":                "30s",
-		"pitaya.handler.messages.compression":              true,
+		"pitaya.handler.messages.compression":              false,
 		"pitaya.heartbeat.interval":                        "30s",
 		"pitaya.metrics.additionalTags":                    map[string]string{},
 		"pitaya.metrics.constTags":                         map[string]string{},
