@@ -37,18 +37,22 @@ var (
 
 // Route struct
 type Route struct {
+	SvID	string
 	SvType  string
 	Service string
 	Method  string
 }
 
 // NewRoute creates a new route
-func NewRoute(server, service, method string) *Route {
-	return &Route{server, service, method}
+func NewRoute(id, server, service, method string) *Route {
+	return &Route{id, server, service, method}
 }
 
 // String transforms the route into a string
 func (r *Route) String() string {
+	if r.SvID != "" {
+		return fmt.Sprintf("%s.%s.%s.%s", r.SvID, r.SvType, r.Service, r.Method)
+	}
 	if r.SvType != "" {
 		return fmt.Sprintf("%s.%s.%s", r.SvType, r.Service, r.Method)
 	}
@@ -69,10 +73,13 @@ func Decode(route string) (*Route, error) {
 		}
 	}
 	switch len(r) {
+	case 4:
+		return NewRoute(r[0], r[1], r[2], r[3]), nil
 	case 3:
-		return NewRoute(r[0], r[1], r[2]), nil
+		return NewRoute("", r[0], r[1], r[2]), nil
 	case 2:
-		return NewRoute("", r[0], r[1]), nil
+		return NewRoute("", "", r[0], r[1]), nil
+
 	default:
 		logger.Log.Errorf("invalid route: " + route)
 		return nil, ErrInvalidRoute

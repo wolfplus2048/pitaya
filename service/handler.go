@@ -297,7 +297,7 @@ func (h *HandlerService) processMessage(a *agent.Agent, msg *message.Message) {
 		return
 	}
 
-	if r.SvType == "" {
+	if r.SvType == "" && r.SvID == "" {
 		r.SvType = h.server.Type
 	}
 
