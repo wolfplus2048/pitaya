@@ -21,6 +21,7 @@
 package config
 
 import (
+	"github.com/topfreegames/pitaya/logger"
 	"strings"
 	"time"
 
@@ -132,6 +133,8 @@ func (c *Config) fillDefaultValues() {
 	for param := range defaultsMap {
 		if c.config.Get(param) == nil {
 			c.config.SetDefault(param, defaultsMap[param])
+		} else {
+			logger.Log.Infof("user config:%s:%s", param, c.config.Get(param))
 		}
 	}
 }
