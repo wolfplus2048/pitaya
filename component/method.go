@@ -90,7 +90,7 @@ func isHandlerMethod(method reflect.Method) bool {
 	}
 
 	// Method needs two or three ins: receiver, context.Context and optional []byte or pointer.
-	if mt.NumIn() != 2 && mt.NumIn() != 3 {
+	if mt.NumIn() != 2 && mt.NumIn() != 3 && mt.NumIn() != 4{
 		return false
 	}
 
@@ -145,7 +145,11 @@ func suitableHandlerMethods(typ reflect.Type, nameFunc func(string) string) map[
 		mn := method.Name
 		if isHandlerMethod(method) {
 			raw := false
-			if mt.NumIn() == 3 && mt.In(2) == typeOfBytes {
+			//by wolfplus
+			//if mt.NumIn() == 3 && mt.In(2) == typeOfBytes {
+			//	raw = true
+			//}
+			if mt.In(2) == typeOfBytes {
 				raw = true
 			}
 			// rewrite handler name

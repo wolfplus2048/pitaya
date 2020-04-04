@@ -44,11 +44,17 @@ var errInvalidMsg = errors.New("invalid message type provided")
 
 func getHandler(rt *route.Route) (*component.Handler, error) {
 	handler, ok := handlers[rt.Short()]
-	if !ok {
-		e := fmt.Errorf("pitaya/handler: %s not found", rt.String())
-		return nil, e
+	if ok {
+		return handler, nil
 	}
-	return handler, nil
+	scriptHandler := rt.SvType + ".handler"
+	handler, ok = handlers[scriptHandler]
+	if ok {
+		return handler, nil
+	}
+
+	e := fmt.Errorf("pitaya/handler: %s not found", rt.String())
+	return nil, e
 
 }
 
@@ -183,6 +189,10 @@ func processHandlerMessage(
 	if arg != nil {
 		args = append(args, reflect.ValueOf(arg))
 	}
+	if h.IsRawArg && h.Method.Type.NumIn() == 4{
+		args = append(args, reflect.ValueOf(rt.Method))
+	}
+
 
 	resp, err := util.Pcall(h.Method, args)
 	if remote && msgType == message.Notify {

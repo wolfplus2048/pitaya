@@ -445,6 +445,9 @@ func Start() {
 }
 
 func listen() {
+	startModules()
+
+
 	startupComponents()
 	// create global ticker instance, timer precision could be customized
 	// by SetTimerPrecision
@@ -475,7 +478,6 @@ func listen() {
 		RegisterModule(unique, "uniqueSession")
 	}
 
-	startModules()
 
 	logger.Log.Info("all modules started!")
 
