@@ -163,7 +163,7 @@ func (h *HandlerService) AppendTask(task CallbackTask) {
 func (h *HandlerService) Register(comp component.Component, opts []component.Option) error {
 	s := component.NewService(comp, opts)
 
-	if _, ok := h.services[s.Name]; ok {
+ 	if _, ok := h.services[s.Name]; ok {
 		return fmt.Errorf("handler: service already defined: %s", s.Name)
 	}
 

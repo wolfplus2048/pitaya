@@ -426,8 +426,8 @@ func (r *RemoteService) remoteCall(
 	var err error
 	target := server
 	if route.SvID != "" {
-		target, _ = r.serviceDiscovery.GetServer(route.SvID)
-		if target == nil {
+		target, err = r.serviceDiscovery.GetServer(route.SvID)
+		if err != nil {
 			return nil, e.NewError(err, e.ErrInternalCode)
 		}
 	}
