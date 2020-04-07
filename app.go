@@ -414,6 +414,7 @@ func Start() {
 		remoteService,
 		app.messageEncoder,
 		app.metricsReporters,
+		app.rpcServer,
 	)
 
 	periodicMetrics()
@@ -542,6 +543,10 @@ func GetDefaultLoggerFromCtx(ctx context.Context) logger.Logger {
 	return l.(logger.Logger)
 }
 
+//
+func GetNatsRPCServer() cluster.RPCServer {
+	return app.rpcServer
+}
 // AddMetricTagsToPropagateCtx adds a key and metric tags that will
 // be propagated through RPC calls. Use the same tags that are at
 // 'pitaya.metrics.additionalTags' config

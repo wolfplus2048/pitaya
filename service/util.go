@@ -47,7 +47,7 @@ func getHandler(rt *route.Route) (*component.Handler, error) {
 	if ok {
 		return handler, nil
 	}
-	scriptHandler := rt.SvType + ".handler"
+	scriptHandler := "lua.handler"
 	handler, ok = handlers[scriptHandler]
 	if ok {
 		return handler, nil

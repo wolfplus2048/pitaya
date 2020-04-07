@@ -252,7 +252,27 @@ func (ns *NatsRPCServer) marshalResponse(res *protos.Response) ([]byte, error) {
 	}
 	return p, err
 }
-
+func (ns *NatsRPCServer) ProcessRemoteMessage(req *protos.Request)  {
+	logger.Log.Debugf("local processing message %v", req.GetMsg().GetId())
+	reply := req.GetMsg().GetReply()
+	var response *protos.Response
+	ctx, err := util.GetContextFromRequest(req, ns.server.ID)
+	if err != nil {
+		response = &protos.Response{
+			Error: &protos.Error{
+				Code: e.ErrInternalCode,
+				Msg:  err.Error(),
+			},
+		}
+	} else {
+		response, _ = ns.pitayaServer.Call(ctx, req)
+	}
+	p, err := ns.marshalResponse(response)
+	err = ns.conn.Publish(reply, p)
+	if err != nil {
+		logger.Log.Error("error sending message response")
+	}
+}
 func (ns *NatsRPCServer) processMessages(threadID int) {
 	for req := range ns.GetUnhandledRequestsChannel() {
 		logger.Log.Debugf("(%d) processing message %v", threadID, req.GetMsg().GetId())
@@ -334,9 +354,9 @@ func (ns *NatsRPCServer) Init() error {
 		return err
 	}
 	// this handles remote messages
-	for i := 0; i < ns.config.GetInt("pitaya.concurrency.remote.service"); i++ {
-		go ns.processMessages(i)
-	}
+	//for i := 0; i < ns.config.GetInt("pitaya.concurrency.remote.service"); i++ {
+	//	go ns.processMessages(i)
+	//}
 
 	session.OnSessionBind(ns.onSessionBind)
 

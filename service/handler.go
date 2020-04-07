@@ -24,10 +24,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/topfreegames/pitaya/acceptor"
 	"strings"
 	"time"
-
-	"github.com/topfreegames/pitaya/acceptor"
 
 	"github.com/google/uuid"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -80,6 +79,7 @@ type (
 		services           map[string]*component.Service // all registered service
 		messageEncoder     message.Encoder
 		metricsReporters   []metrics.Reporter
+		rpcServer        	cluster.RPCServer
 	}
 
 	unhandledMessage struct {
@@ -104,6 +104,7 @@ func NewHandlerService(
 	remoteService *RemoteService,
 	messageEncoder message.Encoder,
 	metricsReporters []metrics.Reporter,
+	rpcServer        	cluster.RPCServer,
 ) *HandlerService {
 	h := &HandlerService{
 		services:           make(map[string]*component.Service),
@@ -120,6 +121,7 @@ func NewHandlerService(
 		remoteService:      remoteService,
 		messageEncoder:     messageEncoder,
 		metricsReporters:   metricsReporters,
+		rpcServer:			rpcServer,
 	}
 
 	return h
@@ -129,10 +131,13 @@ func NewHandlerService(
 func (h *HandlerService) Dispatch(thread int) {
 	// TODO: This timer is being stopped multiple times, it probably doesn't need to be stopped here
 	defer timer.GlobalTicker.Stop()
-
+	//rpcServer := pitaya.GetNatsRPCServer()
+	ns := h.rpcServer.(*cluster.NatsRPCServer)
 	for {
 		// Calls to remote servers block calls to local server
 		select {
+		case req := <- ns.GetUnhandledRequestsChannel():
+			ns.ProcessRemoteMessage(req)
 		case lm := <-h.chLocalProcess:
 			metrics.ReportMessageProcessDelayFromCtx(lm.ctx, h.metricsReporters, "local")
 			h.localProcess(lm.ctx, lm.agent, lm.route, lm.msg)

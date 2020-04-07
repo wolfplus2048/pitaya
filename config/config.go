@@ -87,7 +87,7 @@ func (c *Config) fillDefaultValues() {
 		// the sum of pitaya.buffer.cluster.rpc.server.nats.messages, for covering the worst case scenario
 		// a single backend server should have the config pitaya.buffer.cluster.rpc.server.nats.messages bigger
 		// than the sum of the config pitaya.concurrency.handler.dispatch among all frontend servers
-		"pitaya.concurrency.handler.dispatch":              25,
+		"pitaya.concurrency.handler.dispatch":              1,
 		"pitaya.concurrency.remote.service":                30,
 		"pitaya.defaultpipelines.structvalidation.enabled": false,
 		"pitaya.groups.etcd.dialtimeout":                   "5s",
